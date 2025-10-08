@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Simple Todo</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background:#f7f7f7; padding:30px;}
+    .card { background:white; max-width:600px; margin:0 auto; padding:20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08);}
+    input { width:80%; padding:10px; font-size:16px; }
+    button { padding:10px; font-size:16px; }
+    ul { list-style:none; padding:0; margin-top:15px; }
+    li { padding:8px 10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;}
+    .done { text-decoration:line-through; color:#999; }
+    .actions button { margin-left:8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Todo App</h2>
+    <div>
+      <input id="todoInput" placeholder="Add a new todo..." />
+      <button id="addBtn">Add</button>
+    </div>
+    <ul id="list"></ul>
+  </div>
+
+  <script>
+    const input = document.getElementById('todoInput');
+    const addBtn = document.getElementById('addBtn');
+    const listEl = document.getElementById('list');
+
+    function getTodos(){ return JSON.parse(localStorage.getItem('todos') || '[]'); }
+    function saveTodos(t){ localStorage.setItem('todos', JSON.stringify(t)); }
+
+    function render(){
+      const todos = getTodos();
+      listEl.innerHTML = '';
+      todos.forEach((t, i) => {
+        const li = document.createElement('li');
+        const text = document.createElement('span');
+        text.textContent = t.text;
+        if(t.done) text.classList.add('done');
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const toggle = document.createElement('button');
+        toggle.textContent = t.done ? 'Undo' : 'Done';
+        toggle.onclick = () => { toggleDone(i); };
+
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = () => { deleteTodo(i); };
+
+        actions.appendChild(toggle);
+        actions.appendChild(del);
+
+        li.appendChild(text);
+        li.appendChild(actions);
+        listEl.appendChild(li);
+      });
+    }
+
+    function addTodo(){
+      const v = input.value.trim();
+      if(!v) return;
+      const todos = getTodos();
+      todos.push({ text: v, done: false });
+      saveTodos(todos);
+      input.value = '';
+      render();
+    }
+    function toggleDone(i){
+      const todos = getTodos();
+      todos[i].done = !todos[i].done;
+      saveTodos(todos);
+      render();
+    }
+    function deleteTodo(i){
+      const todos = getTodos();
+      todos.splice(i,1);
+      saveTodos(todos);
+      render();
+    }
+
+    addBtn.addEventListener('click', addTodo);
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') addTodo(); });
+    render();
+  </script>
+</body>
+</html>
